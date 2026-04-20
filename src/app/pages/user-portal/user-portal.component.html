@@ -1,0 +1,26 @@
+<app-navbar></app-navbar>
+<main class="user-portal">
+  <header class="hero">
+    <div class="container text-center">
+      <h1>Secure Your Future with <span class="primary-text">Insure Pro</span></h1>
+      <p class="subtitle">Explore our wide range of insurance policies tailored for your needs.</p>
+    </div>
+  </header>
+
+  <section class="policies-section container">
+    <h2 class="section-title">Available Policies</h2>
+    
+    @if (loading()) {
+      <div class="loader">Loading policies...</div>
+    } @else if (policies().length === 0) {
+      <div class="empty-state">No policies found. Please check back later.</div>
+    } @else {
+      <div class="policies-grid">
+        @for (policy of policies(); track policy._id) {
+          <app-policy-card [policy]="policy"></app-policy-card>
+        }
+      </div>
+    }
+  </section>
+</main>
+<app-toast></app-toast>
