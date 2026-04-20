@@ -27,6 +27,7 @@ import { PolicyCardComponent } from '../../components/policy-card/policy-card';
 })
 export class AdminDashboardComponent implements OnInit {
   policies = signal<Policy[]>([]);
+  loading = signal<boolean>(true);
   currentPolicy = signal<Policy>(this.getEmptyPolicy());
   benefitsInput = signal<string>('');
   
@@ -55,9 +56,15 @@ export class AdminDashboardComponent implements OnInit {
   }
 
   loadPolicies() {
+    this.loading.set(true);
     this.policyService.getPolicies().subscribe({
-      next: (data) => this.policies.set(data),
-      error: () => {}
+      next: (data) => {
+        this.policies.set(data);
+        this.loading.set(false);
+      },
+      error: () => {
+        this.loading.set(false);
+      }
     });
   }
 

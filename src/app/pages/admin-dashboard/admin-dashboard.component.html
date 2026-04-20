@@ -10,20 +10,28 @@
       <button class="btn btn-primary" (click)="openAddModal()">+ Add New Policy</button>
     </header>
 
-    <section class="policies-grid">
-      @for (policy of policies(); track policy._id) {
-        <app-policy-card 
-          [policy]="policy" 
-          [isAdmin]="true"
-          (onEdit)="openEditModal($event)"
-          (onDelete)="confirmDelete($event)"
-        ></app-policy-card>
-      } @empty {
-        <div class="empty-state-full card">
-          <p>No policies available. Create one to get started.</p>
-        </div>
-      }
-    </section>
+    @if (loading()) {
+      <div class="loader-container">
+        <div class="shimmer-card"></div>
+        <div class="shimmer-card"></div>
+        <div class="shimmer-card"></div>
+      </div>
+    } @else {
+      <section class="policies-grid">
+        @for (policy of policies(); track policy._id) {
+          <app-policy-card 
+            [policy]="policy" 
+            [isAdmin]="true"
+            (onEdit)="openEditModal($event)"
+            (onDelete)="confirmDelete($event)"
+          ></app-policy-card>
+        } @empty {
+          <div class="empty-state-full card">
+            <p>No policies available. Create one to get started.</p>
+          </div>
+        }
+      </section>
+    }
   </main>
 
   <!-- Policy Form Modal -->
