@@ -7,9 +7,9 @@ import { AuthService } from '../../services/auth.service';
 import { ToastService } from '../../services/toast';
 import { Policy } from '../../models/policy';
 import { AdminSidebarComponent } from '../../components/admin-sidebar/admin-sidebar';
-import { ConfirmationDialogComponent } from '../../components/confirmation-dialog/confirmation-dialog';
-import { ToastComponent } from '../../components/toast/toast';
+import { NavbarComponent } from '../../components/navbar/navbar';
 import { PolicyCardComponent } from '../../components/policy-card/policy-card';
+import { ConfirmationDialogComponent } from '../../components/confirmation-dialog/confirmation-dialog';
 
 @Component({
   selector: 'app-admin-dashboard',
@@ -18,9 +18,9 @@ import { PolicyCardComponent } from '../../components/policy-card/policy-card';
     CommonModule, 
     FormsModule, 
     AdminSidebarComponent, 
-    ConfirmationDialogComponent, 
-    ToastComponent,
-    PolicyCardComponent
+    NavbarComponent,
+    PolicyCardComponent, 
+    ConfirmationDialogComponent
   ],
   templateUrl: './admin-dashboard.component.html',
   styleUrl: './admin-dashboard.component.css'
@@ -28,31 +28,27 @@ import { PolicyCardComponent } from '../../components/policy-card/policy-card';
 export class AdminDashboardComponent implements OnInit {
   policies = signal<Policy[]>([]);
   loading = signal<boolean>(true);
-  currentPolicy = signal<Policy>(this.getEmptyPolicy());
-  benefitsInput = signal<string>('');
-  
-  isEditing = signal<boolean>(false);
   showFormModal = signal<boolean>(false);
+  isEditing = signal<boolean>(false);
   showDeleteConfirm = signal<boolean>(false);
   showLogoutConfirm = signal<boolean>(false);
+
+  currentPolicy = signal<Partial<Policy>>({});
+  benefitsInput = signal<string>('');
   policyToDelete = signal<Policy | null>(null);
 
+  // Relationship factor: Coverage = Premium * Duration * 50
+  private CALC_FACTOR = 50;
+
   constructor(
-    private policyService: PolicyService, 
+    private policyService: PolicyService,
     private authService: AuthService,
-    private router: Router,
-    private toastService: ToastService
+    private toastService: ToastService,
+    private router: Router
   ) {}
 
   ngOnInit() {
-    this.checkAuth();
     this.loadPolicies();
-  }
-
-  checkAuth() {
-    if (!this.authService.isLoggedIn()) {
-      this.router.navigate(['/admin/login']);
-    }
   }
 
   loadPolicies() {
@@ -62,26 +58,23 @@ export class AdminDashboardComponent implements OnInit {
         this.policies.set(data);
         this.loading.set(false);
       },
-      error: () => {
+      error: (err) => {
+        // Error handled by interceptor
         this.loading.set(false);
       }
     });
   }
 
-  getEmptyPolicy(): Policy {
-    return {
+  openAddModal() {
+    this.isEditing.set(false);
+    this.currentPolicy.set({
       policyName: '',
       premium: 0,
       coverageAmount: 0,
-      duration: '',
+      duration: '1',
       eligibility: '',
       benefits: []
-    };
-  }
-
-  openAddModal() {
-    this.isEditing.set(false);
-    this.currentPolicy.set(this.getEmptyPolicy());
+    });
     this.benefitsInput.set('');
     this.showFormModal.set(true);
   }
@@ -93,22 +86,54 @@ export class AdminDashboardComponent implements OnInit {
     this.showFormModal.set(true);
   }
 
+  // Reactive Logic: Only triggers when isEditing() is true
+  onPremiumInput(val: number) {
+    const policy = { ...this.currentPolicy(), premium: val };
+    if (this.isEditing()) {
+      const duration = parseInt(policy.duration || '1') || 1;
+      policy.coverageAmount = val * duration * this.CALC_FACTOR;
+    }
+    this.currentPolicy.set(policy);
+  }
+
+  onCoverageInput(val: number) {
+    const policy = { ...this.currentPolicy(), coverageAmount: val };
+    if (this.isEditing()) {
+      const duration = parseInt(policy.duration || '1') || 1;
+      // Premium = Coverage / (Duration * Factor)
+      policy.premium = Math.round(val / (duration * this.CALC_FACTOR));
+    }
+    this.currentPolicy.set(policy);
+  }
+
+  onDurationInput(val: string) {
+    const policy = { ...this.currentPolicy(), duration: val };
+    if (this.isEditing() && val) {
+      const duration = parseInt(val) || 1;
+      const premium = policy.premium || 0;
+      // Update Coverage based on new Duration and existing Premium
+      policy.coverageAmount = premium * duration * this.CALC_FACTOR;
+    }
+    this.currentPolicy.set(policy);
+  }
+
   closeFormModal() {
     this.showFormModal.set(false);
   }
 
   savePolicy() {
-    const policyData = { ...this.currentPolicy() };
-    policyData.benefits = this.benefitsInput().split(',').map(b => b.trim()).filter(b => b !== '');
-    
+    const policyData = {
+      ...this.currentPolicy(),
+      benefits: this.benefitsInput().split(',').map(b => b.trim()).filter(b => b !== '')
+    } as Policy;
+
     if (this.isEditing() && policyData._id) {
       this.policyService.updatePolicy(policyData._id, policyData).subscribe({
         next: () => {
           this.toastService.success('Policy updated successfully');
           this.loadPolicies();
           this.closeFormModal();
-        },
-        error: () => {}
+        }
       });
     } else {
       this.policyService.createPolicy(policyData).subscribe({
@@ -116,8 +141,7 @@ export class AdminDashboardComponent implements OnInit {
           this.toastService.success('Policy created successfully');
           this.loadPolicies();
           this.closeFormModal();
-        },
-        error: () => {}
+        }
       });
     }
   }
@@ -128,16 +152,12 @@ export class AdminDashboardComponent implements OnInit {
   }
 
   onDeleteConfirmed() {
-    const policy = this.policyToDelete();
-    if (policy?._id) {
-      this.policyService.deletePolicy(policy._id).subscribe({
+    const id = this.policyToDelete()?._id;
+    if (id) {
+      this.policyService.deletePolicy(id).subscribe({
         next: () => {
-          this.toastService.success('Policy deleted successfully');
+          this.toastService.success('Policy deleted');
           this.loadPolicies();
-          this.showDeleteConfirm.set(false);
-          this.policyToDelete.set(null);
-        },
-        error: () => {
           this.showDeleteConfirm.set(false);
         }
       });
@@ -147,5 +167,6 @@ export class AdminDashboardComponent implements OnInit {
   onLogoutConfirmed() {
     this.authService.logout();
     this.router.navigate(['/']);
+    this.showLogoutConfirm.set(false);
   }
 }

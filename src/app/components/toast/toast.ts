@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ToastService, ToastMessage } from '../../services/toast';
 import { Subscription } from 'rxjs';
@@ -11,20 +11,24 @@ import { Subscription } from 'rxjs';
   styleUrl: './toast.component.css'
 })
 export class ToastComponent implements OnInit, OnDestroy {
-  toasts: ToastMessage[] = [];
+  toasts = signal<ToastMessage[]>([]);
   private subscription?: Subscription;
 
-  constructor(private toastService: ToastService) {}
+  constructor(private toastService: ToastService) {
+    console.log('[ToastComponent] Initialized');
+  }
 
   ngOnInit() {
     this.subscription = this.toastService.toastState.subscribe(toast => {
-      this.toasts.push(toast);
+      console.log('[ToastComponent] Received toast:', toast);
+      this.toasts.update(current => [...current, toast]);
       setTimeout(() => this.removeToast(toast), 3000);
     });
   }
 
   removeToast(toast: ToastMessage) {
-    this.toasts = this.toasts.filter(t => t !== toast);
+    console.log('[ToastComponent] Removing toast:', toast);
+    this.toasts.update(current => current.filter(t => t !== toast));
   }
 
   ngOnDestroy() {

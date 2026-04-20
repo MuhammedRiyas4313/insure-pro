@@ -1,13 +1,12 @@
+<app-navbar [showLogin]="false"></app-navbar>
+
 <div class="admin-layout">
   <app-admin-sidebar (logout)="showLogoutConfirm.set(true)"></app-admin-sidebar>
   
   <main class="admin-content">
     <header class="content-header">
-      <div>
-        <h1>Policy Management</h1>
-        <p>Create, update and delete insurance policies</p>
-      </div>
-      <button class="btn btn-primary" (click)="openAddModal()">+ Add New Policy</button>
+      <h1>Our Policies</h1>
+      <button class="btn btn-primary add-btn" (click)="openAddModal()">+ Add New Policy</button>
     </header>
 
     @if (loading()) {
@@ -40,42 +39,44 @@
       <div class="modal-content form-modal animate-fade-in">
         <header class="modal-header">
           <h2>{{ isEditing() ? 'Edit Policy' : 'Add New Policy' }}</h2>
-          <button class="close-btn" (click)="closeFormModal()">×</button>
         </header>
         
         <form (ngSubmit)="savePolicy()" #policyForm="ngForm">
           <div class="form-grid">
-            <div class="form-group">
+            <div class="form-group fieldset-group">
               <label>Policy Name</label>
               <input type="text" name="policyName" [ngModel]="currentPolicy().policyName" (ngModelChange)="currentPolicy().policyName = $event" required>
             </div>
-            <div class="form-group">
+            
+            <!-- Reactive Inputs -->
+            <div class="form-group fieldset-group">
               <label>Premium (₹ per year)</label>
-              <input type="number" name="premium" [ngModel]="currentPolicy().premium" (ngModelChange)="currentPolicy().premium = $event" required>
+              <input type="number" name="premium" [ngModel]="currentPolicy().premium" (ngModelChange)="onPremiumInput($event)" required>
             </div>
-            <div class="form-group">
+            <div class="form-group fieldset-group">
               <label>Coverage Amount (₹)</label>
-              <input type="number" name="coverageAmount" [ngModel]="currentPolicy().coverageAmount" (ngModelChange)="currentPolicy().coverageAmount = $event" required>
+              <input type="number" name="coverageAmount" [ngModel]="currentPolicy().coverageAmount" (ngModelChange)="onCoverageInput($event)" required>
             </div>
-            <div class="form-group">
-              <label>Duration</label>
-              <input type="text" name="duration" [ngModel]="currentPolicy().duration" (ngModelChange)="currentPolicy().duration = $event" required placeholder="e.g. 5 Years">
+            <div class="form-group fieldset-group">
+              <label>Duration (years)</label>
+              <input type="text" name="duration" [ngModel]="currentPolicy().duration" (ngModelChange)="onDurationInput($event)" required placeholder="e.g. 2">
             </div>
-            <div class="form-group full-width">
+
+            <div class="form-group fieldset-group full-width">
               <label>Eligibility</label>
               <textarea name="eligibility" [ngModel]="currentPolicy().eligibility" (ngModelChange)="currentPolicy().eligibility = $event" required></textarea>
             </div>
-            <div class="form-group full-width">
-              <label>Benefits (Comma separated)</label>
-              <textarea name="benefits" [ngModel]="benefitsInput()" (ngModelChange)="benefitsInput.set($event)" required placeholder="Benefit 1, Benefit 2, Benefit 3"></textarea>
+            <div class="form-group fieldset-group full-width">
+              <label>Benefits (comma separated)</label>
+              <textarea name="benefits" [ngModel]="benefitsInput()" (ngModelChange)="benefitsInput.set($event)" required placeholder="Benefit 1, Benefit 2"></textarea>
             </div>
           </div>
           
           <div class="modal-footer">
-            <button type="button" class="btn btn-outline" (click)="closeFormModal()">Cancel</button>
-            <button type="submit" class="btn btn-primary" [disabled]="!policyForm.form.valid">
-              {{ isEditing() ? 'Update Policy' : 'Create Policy' }}
+            <button type="submit" class="btn btn-blue-light" [disabled]="!policyForm.form.valid">
+              {{ isEditing() ? 'Update' : 'Create' }}
             </button>
+            <button type="button" class="btn btn-text-blue" (click)="closeFormModal()">Cancel</button>
           </div>
         </form>
       </div>
@@ -87,7 +88,7 @@
     <app-confirmation-dialog
       title="Delete Policy"
       [message]="'Are you sure you want to delete \'' + policyToDelete()?.policyName + '\'? This action cannot be undone.'"
-      confirmLabel="Delete Policy"
+      confirmLabel="Delete"
       (confirm)="onDeleteConfirmed()"
       (cancel)="showDeleteConfirm.set(false)"
     ></app-confirmation-dialog>
@@ -97,11 +98,10 @@
   @if (showLogoutConfirm()) {
     <app-confirmation-dialog
       title="Logout"
-      message="Are you sure you want to log out from the admin portal?"
+      message="Are you sure you want to log out?"
       confirmLabel="Logout"
       (confirm)="onLogoutConfirmed()"
       (cancel)="showLogoutConfirm.set(false)"
     ></app-confirmation-dialog>
   }
 </div>
-<app-toast></app-toast>

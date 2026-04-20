@@ -1,44 +1,38 @@
-<div class="card policy-card animate-fade-in">
-  <div class="card-header">
-    <h3 class="policy-name">{{ policy().policyName }}</h3>
-    <span class="premium">₹{{ policy().premium }} <small>/ year</small></span>
-  </div>
+<div class="card policy-card">
+  <h2 class="policy-name text-center">{{ policy().policyName }}</h2>
   
-  <div class="card-body">
-    <div class="info-grid">
-      <div class="info-item">
-        <span class="label">Coverage</span>
-        <span class="value">₹{{ policy().coverageAmount }}</span>
-      </div>
-      <div class="info-item">
-        <span class="label">Duration</span>
-        <span class="value">{{ policy().duration }}</span>
-      </div>
+  <div class="card-details text-center">
+    <div class="detail-row">
+      <span class="label">Premium:</span>
+      <span class="value">₹{{ policy().premium }}/year</span>
     </div>
-    
-    <div class="eligibility">
+    <div class="detail-row">
+      <span class="label">Coverage:</span>
+      <span class="value">₹{{ policy().coverageAmount }}</span>
+    </div>
+    <div class="detail-row">
+      <span class="label">Duration:</span>
+      <span class="value">{{ policy().duration }} years</span>
+    </div>
+    <div class="detail-row">
       <span class="label">Eligibility:</span>
-      <p>{{ policy().eligibility }}</p>
-    </div>
-    
-    <div class="benefits">
-      <span class="label">Benefits:</span>
-      <ul class="benefits-list">
-        @for (benefit of policy().benefits; track benefit) {
-          <li>{{ benefit }}</li>
-        }
-      </ul>
+      <span class="value">{{ policy().eligibility }}</span>
     </div>
   </div>
-  
-  <div class="card-footer">
-    @if (isAdmin()) {
-      <div class="admin-actions">
-        <button class="btn btn-outline" (click)="onEdit.emit(policy())">✏️ Edit</button>
-        <button class="btn btn-danger" (click)="onDelete.emit(policy())">🗑️ Delete</button>
-      </div>
-    } @else {
-      <button class="btn btn-primary w-full">Apply Now</button>
-    }
+
+  <div class="benefits-section text-center">
+    <span class="benefits-label">Benefits:</span>
+    <ul class="benefits-list centered-list">
+      @for (benefit of policy().benefits.slice(0, 4); track benefit) {
+        <li>{{ benefit }}</li>
+      }
+    </ul>
   </div>
+
+  @if (isAdmin()) {
+    <div class="admin-actions">
+      <button class="btn btn-outline-gray" (click)="onEdit.emit(policy())">Edit</button>
+      <button class="btn btn-outline-gray" (click)="onDelete.emit(policy())">Delete</button>
+    </div>
+  }
 </div>

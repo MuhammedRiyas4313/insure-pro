@@ -1,29 +1,28 @@
 <div class="login-page">
   <div class="login-card animate-fade-in">
     <div class="login-header">
-      <span class="logo-icon">🛡️</span>
+      <span class="logo-text">INSURE+ Portal</span>
       <h2>Admin Login</h2>
-      <p>Access the policy management dashboard</p>
     </div>
-    
+
     <form (ngSubmit)="onSubmit()" #loginForm="ngForm">
-      <div class="form-group">
+      <div class="form-group fieldset-group">
         <label for="email">Email</label>
         <input type="email" id="email" name="email" [ngModel]="email()" (ngModelChange)="email.set($event)" required placeholder="Enter admin email">
       </div>
       
-      <div class="form-group">
+      <div class="form-group fieldset-group">
         <label for="password">Password</label>
         <input type="password" id="password" name="password" [ngModel]="password()" (ngModelChange)="password.set($event)" required placeholder="Enter password">
       </div>
       
       <button type="submit" class="btn btn-primary w-full" [disabled]="!loginForm.form.valid || loading()">
-        {{ loading() ? 'Logging in...' : 'Login to Dashboard' }}
+        {{ loading() ? 'Logging in...' : 'Login' }}
       </button>
     </form>
     
     <div class="login-footer">
-      <a (click)="goBack()" class="back-link">← Back to User Portal</a>
+      <span (click)="goBack()" class="back-link">← Back to Site</span>
     </div>
   </div>
 </div>

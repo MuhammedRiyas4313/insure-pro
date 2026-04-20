@@ -11,6 +11,4 @@ import { ToastComponent } from './components/toast/toast';
     <app-toast></app-toast>
   `
 })
-export class App {
-  title = 'frontend';
-}
+export class AppComponent {}

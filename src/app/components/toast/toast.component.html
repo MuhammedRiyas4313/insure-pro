@@ -1,6 +1,6 @@
-@if (toasts.length > 0) {
+@if (toasts().length > 0) {
   <div class="toast-container">
-    @for (toast of toasts; track toast) {
+    @for (toast of toasts(); track toast) {
       <div class="toast animate-slide-in" [class]="toast.type">
         <span class="icon">{{ toast.type === 'success' ? '✅' : toast.type === 'error' ? '❌' : 'ℹ️' }}</span>
         <span class="message">{{ toast.message }}</span>
